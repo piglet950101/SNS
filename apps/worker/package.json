@@ -1,0 +1,36 @@
+{
+  "name": "@postari/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsc --noEmit",
+    "start": "tsx src/worker.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run",
+    "cron:token-health": "tsx src/jobs/token-health-check.ts",
+    "cron:cleanup-retention": "tsx src/jobs/cleanup-retention.ts"
+  },
+  "dependencies": {
+    "@postari/db": "workspace:*",
+    "@postari/shared": "workspace:*",
+    "@sentry/node": "8.30.0",
+    "bullmq": "5.13.2",
+    "drizzle-orm": "0.33.0",
+    "ioredis": "5.4.1",
+    "nodemailer": "6.9.15",
+    "pino": "9.4.0",
+    "postgres": "3.4.4",
+    "stripe": "17.0.0",
+    "tsx": "4.19.1",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.9",
+    "@types/nodemailer": "6.4.15",
+    "typescript": "5.4.5",
+    "vitest": "2.1.1"
+  }
+}

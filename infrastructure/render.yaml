@@ -1,0 +1,213 @@
+# -----------------------------------------------------------------------------
+# Render Blueprint — Postari Phase 1
+# Apply with: `render blueprint apply` or via the Render dashboard.
+#
+# Secrets: set every key marked `sync: false` in the Render dashboard under the
+# postari-env env group. Do NOT commit real values anywhere.
+# -----------------------------------------------------------------------------
+
+services:
+  # --- Web (Next.js 14) ------------------------------------------------------
+  - type: web
+    name: postari-web
+    runtime: node
+    plan: starter
+    region: singapore
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/web... build
+    startCommand: pnpm --filter @postari/web start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - fromGroup: postari-env
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://postari.jp
+      - key: NEXT_PUBLIC_API_URL
+        value: https://api.postari.jp
+    domains:
+      - postari.jp
+      - www.postari.jp
+
+  # --- API (Express) ---------------------------------------------------------
+  - type: web
+    name: postari-api
+    runtime: node
+    plan: starter
+    region: singapore
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/api build
+    startCommand: pnpm --filter @postari/api start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - fromGroup: postari-env
+      - key: PORT
+        value: "4000"
+    domains:
+      - api.postari.jp
+
+  # --- Worker (BullMQ) -------------------------------------------------------
+  - type: worker
+    name: postari-worker
+    runtime: node
+    plan: starter
+    region: singapore
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/worker build
+    startCommand: pnpm --filter @postari/worker start
+    autoDeploy: true
+    envVars:
+      - fromGroup: postari-env
+
+  # --- Cron: daily token-health-check ---------------------------------------
+  - type: cron
+    name: postari-cron-token-health
+    runtime: node
+    region: singapore
+    schedule: "0 0 * * *" # 00:00 UTC — 09:00 JST
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @postari/worker cron:token-health
+    envVars:
+      - fromGroup: postari-env
+
+  # --- Cron: daily retention cleanup ----------------------------------------
+  - type: cron
+    name: postari-cron-retention
+    runtime: node
+    region: singapore
+    schedule: "0 18 * * *" # 18:00 UTC — 03:00 JST next day
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @postari/worker cron:cleanup-retention
+    envVars:
+      - fromGroup: postari-env
+
+databases:
+  - name: postari-postgres
+    plan: basic-256mb
+    region: singapore
+    postgresMajorVersion: "16"
+    ipAllowList: [] # private only
+    databaseName: postari
+    user: postari
+
+  - name: postari-redis
+    plan: free
+    region: singapore
+    type: keyvalue
+    ipAllowList: []
+
+envVarGroups:
+  - name: postari-env
+    envVars:
+      # --- Core ----------------------------------------------------------
+      - key: NODE_ENV
+        value: production
+      - key: APP_URL
+        value: https://postari.jp
+      - key: API_URL
+        value: https://api.postari.jp
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postari-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: postari-redis
+          property: connectionString
+
+      # --- Clerk ---------------------------------------------------------
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_WEBHOOK_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /sign-in
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /sign-up
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+        value: /post
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+        value: /onboarding/store
+
+      # --- Cloudflare R2 (env var names per client instruction) ----------
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_R2_ACCESS_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        value: postari-images
+      - key: R2_PUBLIC_URL
+        value: https://images.postari.jp
+      - key: R2_ENDPOINT
+        sync: false
+
+      # --- Anthropic -----------------------------------------------------
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-5
+
+      # --- X (Twitter) ---------------------------------------------------
+      - key: X_OAUTH_CLIENT_ID
+        sync: false
+      - key: X_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: X_OAUTH_CALLBACK_URL
+        value: https://postari.jp/api/oauth/x/callback
+
+      # --- Stripe --------------------------------------------------------
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_STARTER_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_STANDARD_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_PRO_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_STARTER_ANNUAL
+        sync: false
+      - key: STRIPE_PRICE_STANDARD_ANNUAL
+        sync: false
+      - key: STRIPE_PRICE_PRO_ANNUAL
+        sync: false
+      - key: STRIPE_PRICE_OVERAGE
+        sync: false
+
+      # --- Encryption ----------------------------------------------------
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: TOKEN_REFRESH_CRON
+        value: 0 0 * * *
+      - key: TOKEN_EXPIRY_WARNING_DAYS
+        value: "3"
+
+      # --- Observability ------------------------------------------------
+      - key: SENTRY_DSN_WEB
+        sync: false
+      - key: SENTRY_DSN_API
+        sync: false
+      - key: SENTRY_DSN_WORKER
+        sync: false
+
+      # --- Email ---------------------------------------------------------
+      - key: SUPPORT_EMAIL
+        value: support@postari.jp
+      - key: FROM_EMAIL
+        value: noreply@postari.jp
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+
+      # --- Alerts --------------------------------------------------------
+      - key: SLACK_WEBHOOK_URL
+        sync: false

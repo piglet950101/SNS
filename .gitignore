@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+.turbo/
+out/
+*.tsbuildinfo
+
+# Env (never commit secrets)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.sample.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Drizzle meta (we keep SQL; journal is sometimes noisy)
+packages/db/drizzle/meta/_journal.json.bak
+
+# OS
+.DS_Store
