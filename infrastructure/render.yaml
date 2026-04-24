@@ -1,9 +1,11 @@
 # -----------------------------------------------------------------------------
 # Render Blueprint — Postari Phase 1
-# Apply with: `render blueprint apply` or via the Render dashboard.
+# Apply via the Render dashboard. Set every `sync: false` var in the UI after
+# apply — or via API post-deploy. Never commit real values.
 #
-# Secrets: set every key marked `sync: false` in the Render dashboard under the
-# postari-env env group. Do NOT commit real values anywhere.
+# Why DATABASE_URL / REDIS_URL live on each service (not in envVarGroup):
+# Render's spec forbids `fromDatabase` / `fromService` inside envVarGroups;
+# those reference types are only valid on per-service envVars[].
 # -----------------------------------------------------------------------------
 
 services:
@@ -41,6 +43,15 @@ services:
       - fromGroup: postari-env
       - key: PORT
         value: "4000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postari-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: postari-redis
+          property: connectionString
     domains:
       - api.postari.jp
 
@@ -55,6 +66,15 @@ services:
     autoDeploy: true
     envVars:
       - fromGroup: postari-env
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postari-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: postari-redis
+          property: connectionString
 
   # --- Cron: daily token-health-check ---------------------------------------
   - type: cron
@@ -66,6 +86,15 @@ services:
     startCommand: pnpm --filter @postari/worker cron:token-health
     envVars:
       - fromGroup: postari-env
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postari-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: postari-redis
+          property: connectionString
 
   # --- Cron: daily retention cleanup ----------------------------------------
   - type: cron
@@ -77,6 +106,15 @@ services:
     startCommand: pnpm --filter @postari/worker cron:cleanup-retention
     envVars:
       - fromGroup: postari-env
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postari-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: postari-redis
+          property: connectionString
 
   # --- Redis / Valkey (Render Key Value — must live under `services:`) -------
   - type: keyvalue
@@ -104,15 +142,6 @@ envVarGroups:
         value: https://postari.jp
       - key: API_URL
         value: https://api.postari.jp
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postari-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: postari-redis
-          property: connectionString
 
       # --- Clerk ---------------------------------------------------------
       - key: CLERK_SECRET_KEY
