@@ -13,7 +13,7 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/web... build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/web build
     startCommand: pnpm --filter @postari/web start
     healthCheckPath: /
     autoDeploy: true
