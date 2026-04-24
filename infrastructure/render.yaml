@@ -78,6 +78,13 @@ services:
     envVars:
       - fromGroup: postari-env
 
+  # --- Redis / Valkey (Render Key Value — must live under `services:`) -------
+  - type: keyvalue
+    name: postari-redis
+    plan: free
+    region: singapore
+    ipAllowList: []
+
 databases:
   - name: postari-postgres
     plan: basic-256mb
@@ -86,12 +93,6 @@ databases:
     ipAllowList: [] # private only
     databaseName: postari
     user: postari
-
-  - name: postari-redis
-    plan: free
-    region: singapore
-    type: keyvalue
-    ipAllowList: []
 
 envVarGroups:
   - name: postari-env
@@ -108,7 +109,8 @@ envVarGroups:
           name: postari-postgres
           property: connectionString
       - key: REDIS_URL
-        fromDatabase:
+        fromService:
+          type: keyvalue
           name: postari-redis
           property: connectionString
 
