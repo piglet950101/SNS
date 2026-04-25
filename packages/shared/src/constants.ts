@@ -40,12 +40,13 @@ export const ACCESS_LOG_RETENTION_MONTHS = 6
 export const RATE_LIMIT_GENERATE_PER_USER_PER_MIN = 5
 export const RATE_LIMIT_OAUTH_PER_IP_PER_MIN = 10
 
-// BullMQ queue names (MUST match across api + worker)
+// BullMQ queue names (MUST match across api + worker).
+// Note: BullMQ 5.13+ disallows ':' in queue names — use '-' instead.
 export const QUEUES = {
-  POST_X: 'post:x',
-  TOKEN_REFRESH_X: 'token:refresh:x',
-  NOTIFY_TOKEN_EXPIRED: 'notify:token:expired',
-  CLEANUP_RETENTION: 'cleanup:retention',
+  POST_X: 'post-x',
+  TOKEN_REFRESH_X: 'token-refresh-x',
+  NOTIFY_TOKEN_EXPIRED: 'notify-token-expired',
+  CLEANUP_RETENTION: 'cleanup-retention',
 } as const
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES]
 
