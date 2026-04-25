@@ -15,7 +15,7 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/web build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false --prod=false && pnpm --filter @postari/web build
     startCommand: pnpm --filter @postari/web start
     healthCheckPath: /
     autoDeploy: true
@@ -35,7 +35,7 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/api build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false --prod=false && pnpm --filter @postari/api build
     startCommand: pnpm --filter @postari/api start
     healthCheckPath: /api/health
     autoDeploy: true
@@ -61,7 +61,7 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/worker build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false --prod=false && pnpm --filter @postari/worker build
     startCommand: pnpm --filter @postari/worker start
     autoDeploy: true
     envVars:
@@ -82,7 +82,7 @@ services:
     runtime: node
     region: singapore
     schedule: "0 0 * * *" # 00:00 UTC — 09:00 JST
-    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false
     startCommand: pnpm --filter @postari/worker cron:token-health
     envVars:
       - fromGroup: postari-env
@@ -102,7 +102,7 @@ services:
     runtime: node
     region: singapore
     schedule: "0 18 * * *" # 18:00 UTC — 03:00 JST next day
-    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false
     startCommand: pnpm --filter @postari/worker cron:cleanup-retention
     envVars:
       - fromGroup: postari-env
