@@ -30,15 +30,20 @@ export async function generateXPost(input: GenerateXInput): Promise<GenerateXRes
     imageCount: input.imageUrls.length,
   })
 
-  const imageBlocks: Anthropic.ImageBlockParam[] = input.imageUrls.map((url) => ({
-    type: 'image',
-    source: { type: 'url', url },
-  }))
+  // SDK 0.30 type defs don't include URL image sources or cache_control on
+  // text blocks (they're behind beta headers). Cast to bypass — runtime API
+  // accepts them per Anthropic docs.
+  const imageBlocks = input.imageUrls.map((url) => ({
+    type: 'image' as const,
+    source: { type: 'url' as const, url },
+  })) as unknown as Anthropic.ImageBlockParam[]
 
   const firstPass = await anthropic.messages.create({
     model: e.ANTHROPIC_MODEL,
     max_tokens: 500,
-    system: [{ type: 'text', text: X_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+    system: [
+      { type: 'text', text: X_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } } as Anthropic.TextBlockParam,
+    ],
     messages: [
       {
         role: 'user',
@@ -59,7 +64,9 @@ export async function generateXPost(input: GenerateXInput): Promise<GenerateXRes
   const retry = await anthropic.messages.create({
     model: e.ANTHROPIC_MODEL,
     max_tokens: 500,
-    system: [{ type: 'text', text: X_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+    system: [
+      { type: 'text', text: X_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } } as Anthropic.TextBlockParam,
+    ],
     messages: [
       { role: 'user', content: [...imageBlocks, { type: 'text', text: userText }] },
       { role: 'assistant', content: [{ type: 'text', text: firstText }] },

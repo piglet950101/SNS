@@ -1,11 +1,9 @@
 # -----------------------------------------------------------------------------
 # Render Blueprint — Postari Phase 1
-# Apply via the Render dashboard. Set every `sync: false` var in the UI after
-# apply — or via API post-deploy. Never commit real values.
+# Apply with: `render blueprint apply` or via the Render dashboard.
 #
-# Why DATABASE_URL / REDIS_URL live on each service (not in envVarGroup):
-# Render's spec forbids `fromDatabase` / `fromService` inside envVarGroups;
-# those reference types are only valid on per-service envVars[].
+# Secrets: set every key marked `sync: false` in the Render dashboard under the
+# postari-env env group. Do NOT commit real values anywhere.
 # -----------------------------------------------------------------------------
 
 services:
@@ -15,7 +13,7 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @postari/web build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/web build
     startCommand: pnpm --filter @postari/web start
     healthCheckPath: /
     autoDeploy: true
@@ -35,7 +33,7 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @postari/api build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/api build
     startCommand: pnpm --filter @postari/api start
     healthCheckPath: /api/health
     autoDeploy: true
@@ -43,15 +41,6 @@ services:
       - fromGroup: postari-env
       - key: PORT
         value: "4000"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postari-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: postari-redis
-          property: connectionString
     domains:
       - api.postari.jp
 
@@ -61,20 +50,11 @@ services:
     runtime: node
     plan: starter
     region: singapore
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @postari/worker build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @postari/worker build
     startCommand: pnpm --filter @postari/worker start
     autoDeploy: true
     envVars:
       - fromGroup: postari-env
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postari-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: postari-redis
-          property: connectionString
 
   # --- Cron: daily token-health-check ---------------------------------------
   - type: cron
@@ -82,19 +62,10 @@ services:
     runtime: node
     region: singapore
     schedule: "0 0 * * *" # 00:00 UTC — 09:00 JST
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
     startCommand: pnpm --filter @postari/worker cron:token-health
     envVars:
       - fromGroup: postari-env
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postari-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: postari-redis
-          property: connectionString
 
   # --- Cron: daily retention cleanup ----------------------------------------
   - type: cron
@@ -102,19 +73,10 @@ services:
     runtime: node
     region: singapore
     schedule: "0 18 * * *" # 18:00 UTC — 03:00 JST next day
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
     startCommand: pnpm --filter @postari/worker cron:cleanup-retention
     envVars:
       - fromGroup: postari-env
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postari-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: postari-redis
-          property: connectionString
 
   # --- Redis / Valkey (Render Key Value — must live under `services:`) -------
   - type: keyvalue
@@ -142,6 +104,14 @@ envVarGroups:
         value: https://postari.jp
       - key: API_URL
         value: https://api.postari.jp
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postari-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: postari-redis
+          property: connectionString
 
       # --- Clerk ---------------------------------------------------------
       - key: CLERK_SECRET_KEY

@@ -9,11 +9,13 @@ import { env } from '../env'
 import { unauthorized } from '../lib/errors'
 import { logger } from '../lib/logger'
 
-declare module 'express-serve-static-core' {
-  interface Request {
-    auth?: {
-      userId: string // internal users.id (uuid)
-      clerkId: string
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: {
+        userId: string // internal users.id (uuid)
+        clerkId: string
+      }
     }
   }
 }
