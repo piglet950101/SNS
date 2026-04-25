@@ -42,10 +42,11 @@ storesRouter.post('/', async (req, res, next) => {
     const planStoreLimit =
       sub && sub.status === 'active' ? PLAN_SPECS[sub.plan as Plan].storeLimit : 1
 
-    const [{ n }] = await db
+    const countRows = await db
       .select({ n: count() })
       .from(stores)
       .where(eq(stores.userId, req.auth!.userId))
+    const n = countRows[0]?.n ?? 0
 
     if (n >= planStoreLimit) {
       throw new HttpError(

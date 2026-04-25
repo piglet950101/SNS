@@ -74,7 +74,7 @@ export const FORBIDDEN_PATTERNS: RegExp[] = [
   // Absolutes / guarantees
   /保証(?:します|致します)/u,
   /確実に/u,
-] as const satisfies readonly RegExp[]
+]
 
 /** Flat list used by the retry prompt for human readability. */
 export const RECOMMENDED_ALTERNATIVES: readonly string[] = GUARDRAIL_CATEGORIES.map(

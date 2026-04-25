@@ -63,7 +63,8 @@ async function toBlob(
     return canvas.convertToBlob({ type, quality })
   }
   return new Promise((resolve, reject) => {
-    ;(canvas as HTMLCanvasElement).toBlob(
+    const c = canvas as HTMLCanvasElement
+    c.toBlob(
       (b) => (b ? resolve(b) : reject(new Error('canvas.toBlob failed'))),
       type,
       quality,

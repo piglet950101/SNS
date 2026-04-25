@@ -80,7 +80,7 @@ export default function SettingsSnsPage() {
       })
       toast({ variant: 'success', title: '保存しました' })
       await refresh()
-    } catch (e) {
+    } catch {
       toast({ variant: 'destructive', title: '保存に失敗しました' })
     } finally {
       setSavingId(null)
