@@ -29,6 +29,9 @@ pnpm-debug.log*
 .idea/
 *.swp
 *.swo
+*.tmp
+*.tmp.*
+**/*.tmp.*
 .DS_Store
 Thumbs.db
 
