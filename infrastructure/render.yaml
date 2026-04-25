@@ -36,7 +36,9 @@ services:
     plan: starter
     region: singapore
     buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @postari/api build
-    preDeployCommand: pnpm --filter @postari/db migrate
+    # Use `push` for staging (syncs schema directly, no migration history needed).
+    # Switch to `migrate` once we generate proper migrations and want versioned schema changes.
+    preDeployCommand: pnpm --filter @postari/db push --force
     startCommand: pnpm --filter @postari/api start
     healthCheckPath: /api/health
     autoDeploy: true
