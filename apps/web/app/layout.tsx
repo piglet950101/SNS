@@ -49,8 +49,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
     >
-      <html lang="ja" className={notoSansJp.variable}>
-        <body className="min-h-[100dvh]">
+      <html lang="ja" className={notoSansJp.variable} translate="no">
+        <head>
+          {/* Disable browser auto-translate (Chrome / Edge / Safari).
+              React 18 hydration breaks when translation rewrites text nodes
+              before hydration runs (errors #418 / #423). Site is JP-only. */}
+          <meta name="google" content="notranslate" />
+        </head>
+        <body className="min-h-[100dvh]" translate="no">
           <ToastContextProvider>
             {children}
             <Toaster />
