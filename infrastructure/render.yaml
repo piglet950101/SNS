@@ -21,10 +21,14 @@ services:
     autoDeploy: true
     envVars:
       - fromGroup: postari-env
+      # NEXT_PUBLIC_* are baked into the build at compile time. We mark them
+      # sync: false so staging can use *.onrender.com via API/dashboard
+      # override without the Blueprint sync reverting back to postari.jp.
+      # At production cutover, set these to https://postari.jp / https://api.postari.jp.
       - key: NEXT_PUBLIC_APP_URL
-        value: https://postari.jp
+        sync: false
       - key: NEXT_PUBLIC_API_URL
-        value: https://api.postari.jp
+        sync: false
     domains:
       - postari.jp
       - www.postari.jp
