@@ -157,9 +157,11 @@ envVarGroups:
         value: /sign-in
       - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
         value: /sign-up
-      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+      # Clerk v5 renamed AFTER_SIGN_IN/UP_URL → SIGN_IN/UP_FALLBACK_REDIRECT_URL.
+      # Old names are deprecated and trigger console warnings in v5.x.
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL
         value: /post
-      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL
         value: /onboarding/store
 
       # --- Cloudflare R2 (env var names per client instruction) ----------
