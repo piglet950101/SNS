@@ -19,7 +19,11 @@ export function Footer() {
             {SUPPORT_EMAIL}
           </a>
         </nav>
-        <p className="text-xs">© {new Date().getFullYear()} 株式会社アテナ — Postari</p>
+        {/* suppressHydrationWarning: server/client clock skew across year boundary
+            shouldn't trigger React's hydration error path. */}
+        <p className="text-xs" suppressHydrationWarning>
+          © {new Date().getFullYear()} 株式会社アテナ — Postari
+        </p>
       </div>
     </footer>
   )
