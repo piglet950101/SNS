@@ -34,8 +34,10 @@ export async function createSignedUploadUrl(
     Bucket: e.R2_BUCKET_NAME,
     Key: key,
     ContentType: contentType,
-    // Tag new uploads so Cloudflare lifecycle can cull unattached objects later.
-    Tagging: 'ephemeral=true',
+    // R2 does NOT implement S3's x-amz-tagging — pre-signed URLs that include
+    // the header are rejected with NotImplemented at PUT time. Cull unattached
+    // uploads via Cloudflare lifecycle rules with a key prefix instead
+    // (`uploads/` prefix → delete after N days).
   })
 
   const uploadUrl = await getSignedUrl(r2, cmd, { expiresIn: 600 })

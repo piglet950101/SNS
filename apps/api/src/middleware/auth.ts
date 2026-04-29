@@ -34,7 +34,13 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     if (!header?.startsWith('Bearer ')) throw unauthorized()
     const token = header.slice(7)
 
-    const payload = await verifyToken(token, { secretKey: env().CLERK_SECRET_KEY })
+    let payload
+    try {
+      payload = await verifyToken(token, { secretKey: env().CLERK_SECRET_KEY })
+    } catch {
+      // Malformed / expired / forged JWT — return 401, not 500.
+      throw unauthorized('認証トークンが無効です')
+    }
     const clerkId = payload.sub
     if (!clerkId) throw unauthorized()
 
