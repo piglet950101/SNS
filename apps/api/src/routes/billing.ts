@@ -66,6 +66,11 @@ billingRouter.post('/checkout', async (req, res, next) => {
       },
       success_url: `${env().APP_URL}/post?billing=success`,
       cancel_url: `${env().APP_URL}/billing/setup?canceled=true`,
+      // automatic_tax requires the Customer to have an address. We don't
+      // collect one at signup, so Checkout must collect it and persist it
+      // back to the Customer (customer_update.address='auto').
+      billing_address_collection: 'required',
+      customer_update: { address: 'auto', name: 'auto' },
       automatic_tax: { enabled: true },
       allow_promotion_codes: true,
     })
