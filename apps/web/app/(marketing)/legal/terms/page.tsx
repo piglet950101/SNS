@@ -101,19 +101,19 @@ export default function TermsPage() {
           </tr>
           <tr>
             <td>スターター</td>
-            <td>¥1,980</td>
+            <td>¥2,400</td>
             <td>30 投稿 / 月</td>
             <td>1 店舗</td>
           </tr>
           <tr>
             <td>スタンダード</td>
-            <td>¥5,980</td>
+            <td>¥7,200</td>
             <td>100 投稿 / 月</td>
             <td>3 店舗</td>
           </tr>
           <tr>
             <td>プロ</td>
-            <td>¥14,800</td>
+            <td>¥18,000</td>
             <td>400 投稿 / 月</td>
             <td>10 店舗</td>
           </tr>
@@ -131,7 +131,7 @@ export default function TermsPage() {
           <tr>
             <td>従量超過課金</td>
             <td>月間投稿上限を超えた場合の 1 投稿あたり課金</td>
-            <td>¥150 / 投稿</td>
+            <td>¥200 / 投稿</td>
           </tr>
           <tr>
             <td>年額割引</td>
