@@ -48,19 +48,21 @@ billingRouter.post('/checkout', async (req, res, next) => {
 
     const priceId = priceIdFor(input.plan, input.interval)
 
+    // Note: the metered overage item is NOT included here. Stripe Checkout
+    // rejects line_items with mismatched billing intervals (annual main +
+    // monthly meter). The overage subscription item is attached after
+    // checkout in the customer.subscription.created webhook.
+    //
+    // Note: `proration_behavior` is not accepted on new subscriptions via
+    // Checkout (Stripe requires billing_cycle_anchor alongside it). Plan
+    // swaps go through the Customer Portal where proration is configurable.
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       client_reference_id: user.id,
-      line_items: [
-        { price: priceId, quantity: 1 },
-        // Metered overage item — billed via usage records on each post.
-        { price: env().STRIPE_PRICE_OVERAGE },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
         metadata: { postari_user_id: user.id, plan: input.plan, interval: input.interval },
-        // Annual plans: disable proration on subsequent mid-cycle swaps to avoid surprise charges.
-        proration_behavior: input.interval === 'year' ? 'none' : 'create_prorations',
       },
       success_url: `${env().APP_URL}/post?billing=success`,
       cancel_url: `${env().APP_URL}/billing/setup?canceled=true`,

@@ -29,7 +29,23 @@ stripeWebhookRouter.post('/', raw({ type: 'application/json' }), async (req, res
     logger.info({ type: event.type, id: event.id }, 'stripe event received')
 
     switch (event.type) {
-      case 'customer.subscription.created':
+      case 'customer.subscription.created': {
+        // Attach the metered overage price as a subscription item. Checkout
+        // can't include it directly because it has a different billing
+        // interval than annual plans. Idempotent: skip if already present.
+        const sub = event.data.object as Stripe.Subscription
+        const overagePriceId = env().STRIPE_PRICE_OVERAGE
+        const hasOverage = sub.items.data.some((i) => i.price.id === overagePriceId)
+        if (!hasOverage) {
+          await stripe.subscriptionItems.create({
+            subscription: sub.id,
+            price: overagePriceId,
+          })
+          // The follow-up customer.subscription.updated event will re-sync DB.
+        }
+        await upsertSubscription(sub)
+        break
+      }
       case 'customer.subscription.updated': {
         await upsertSubscription(event.data.object as Stripe.Subscription)
         break
@@ -75,7 +91,10 @@ async function upsertSubscription(sub: Stripe.Subscription) {
     return
   }
 
-  const item = sub.items.data[0]
+  // Subscription has 2 items (main plan + metered overage). Skip the
+  // overage when resolving the plan — its price ID won't match any plan.
+  const overagePriceId = env().STRIPE_PRICE_OVERAGE
+  const item = sub.items.data.find((i) => i.price.id !== overagePriceId)
   if (!item) return
 
   const priceId = item.price.id
