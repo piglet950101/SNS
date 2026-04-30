@@ -26,6 +26,15 @@ export const metadata: Metadata = {
     siteName: 'Postari',
   },
   robots: { index: true, follow: true },
+  // Disable browser auto-translate (Chrome / Edge / Safari).
+  // React 18 hydration breaks when translation rewrites text nodes before
+  // hydration runs (errors #418 / #423). Site is JP-only.
+  // NOTE: Must use metadata.other (not an explicit <head> in JSX) — putting
+  // <head> in App Router layout causes hydration mismatch because Next.js
+  // injects many head elements that aren't in the React tree.
+  other: {
+    google: 'notranslate',
+  },
 }
 
 export const viewport: Viewport = {
@@ -50,12 +59,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       signUpUrl="/sign-up"
     >
       <html lang="ja" className={notoSansJp.variable} translate="no">
-        <head>
-          {/* Disable browser auto-translate (Chrome / Edge / Safari).
-              React 18 hydration breaks when translation rewrites text nodes
-              before hydration runs (errors #418 / #423). Site is JP-only. */}
-          <meta name="google" content="notranslate" />
-        </head>
         <body className="min-h-[100dvh]" translate="no">
           <ToastContextProvider>
             {children}
